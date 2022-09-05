@@ -15,7 +15,7 @@ defmodule MicroserviceWeb.Controller.Subscribers do
         # Generate a confirmation token
         token = Newsletter.generate_confirm_token(subscription)
         # Send the confirmation email
-        Email.subscription_confirm(subscription.email, token) 
+        Email.subscription_confirm(subscription.email, subscription.name, token) 
         |> Mailer.deliver_later()
         # Render the response
         conn 
