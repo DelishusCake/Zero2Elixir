@@ -6,6 +6,7 @@ defmodule Microservice.MixProject do
       app: :microservice,
       version: "0.1.0",
       elixir: "~> 1.13",
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
@@ -15,10 +16,14 @@ defmodule Microservice.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
+      mod: {Microservice.Application, []},
       extra_applications: [:logger],
-      mod: {Microservice.Application, []}
     ]
   end
+
+  # Specifies which paths to compile per environment.
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
@@ -36,8 +41,11 @@ defmodule Microservice.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "ecto.setup"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "ecto.setup": ["ecto.create", "ecto.migrate" ],
-      "ecto.reset": ["ecto.drop", "ecto.setup"]
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
     ]
   end
+
+
 end

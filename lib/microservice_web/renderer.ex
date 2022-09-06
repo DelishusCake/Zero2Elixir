@@ -23,4 +23,13 @@ defmodule MicroserviceWeb.Renderer do
     |> send_resp((status || 200), body)
   end
 
+  def redirect(%{status: status} = conn, url) do
+    body = "<html><body>You are being <a href=\"#{url}\">redirected</a>.</body></html>"
+
+    conn
+    |> put_resp_header("location", url)
+    |> put_resp_content_type("text/html")
+    |> send_resp((status || 302), body)
+  end
+
 end

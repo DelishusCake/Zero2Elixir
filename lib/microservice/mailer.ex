@@ -1,3 +1,4 @@
 defmodule Microservice.Mailer do
-  use Bamboo.Mailer, otp_app: :microservice
+  use Bamboo.Mailer, 
+    otp_app: :microservice
 end

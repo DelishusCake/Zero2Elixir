@@ -1,6 +1,6 @@
 defmodule MicroserviceWeb.Controller.Subscribers do
-  alias Microservice.{Newsletter, Mailer}
-  alias MicroserviceWeb.{Email, Renderer, Errors}
+  alias Microservice.{Newsletter, }
+  alias MicroserviceWeb.{Renderer, Errors}
 
   import Plug.Conn
 
@@ -11,16 +11,17 @@ defmodule MicroserviceWeb.Controller.Subscribers do
 
   def create(conn, params) do
     case Newsletter.create_subscription(params) do
+      # Subscriber created
       {:ok, subscription} -> 
-        # Generate a confirmation token
-        token = Newsletter.generate_confirm_token(subscription)
-        # Send the confirmation email
-        Email.subscription_confirm(subscription.email, subscription.name, token) 
-        |> Mailer.deliver_later()
-        # Render the response
         conn 
         |> put_status(:created)
         |> Renderer.render_json(subscription)
+      # Email failed to send
+      {:error, :failed_to_send} ->
+        conn 
+        |> put_status(:internal_server_error)
+        |> Renderer.render_json(%{error: "Failed to send email"})
+      # Failed to create subscriber
       {:error, changeset} ->
         # Render the error json
         errors = Ecto.Changeset.traverse_errors(changeset, &Errors.translate_error/1)

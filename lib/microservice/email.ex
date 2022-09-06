@@ -1,4 +1,4 @@
-defmodule MicroserviceWeb.Email do
+defmodule Microservice.Email do
   import Bamboo.Email
 
   alias MicroserviceWeb.Renderer
