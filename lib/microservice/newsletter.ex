@@ -6,16 +6,26 @@ defmodule Microservice.Newsletter do
 
   @max_token_age (60*10) # 10 minutes
 
+  @doc """
+  Get all subscriptions, both confirmed and unconfirmed
+  """
   def get_subscriptions() do
     Subscription |> Repo.all()
   end
 
+  @doc """
+  Get all confirmed subscriptions
+  """
   def get_confirmed_subscriptions() do
     query = from sub in Subscription,
       where: not is_nil(sub.confirmed_at) 
     query |> Repo.all()
   end
 
+  @doc """
+  Create a new subscription and send them an email with instructions 
+  on how to confirm their subscription
+  """
   def create_subscription(attrs \\ %{}) do
     Repo.transaction(fn ->
       # Insert the new subscriber
@@ -31,11 +41,13 @@ defmodule Microservice.Newsletter do
     end)
   end
 
+  @doc """
+  Given a confirmation token, either verify the bearer's email or return an error
+  """
   def confirm_subscription(token) do
-    # Get the secret key to verify the token with
-    secret = get_secret_key_base()
     # Verify the token
-    with {:ok, id} <- Plug.Crypto.verify(secret, "confirm subscription", token, max_age: @max_token_age) do
+    with {:ok, id} <- verify_subscription_token(token) 
+    do
       # Get the subscription to confirm
       subscription = Repo.get!(Subscription, id)
       # Get the confirmed at value for the subscription, or the current UTC timestamp
@@ -48,6 +60,16 @@ defmodule Microservice.Newsletter do
     else
       err -> err
     end
+  end
+
+  @doc """
+  Check that a confirmation token is valid
+  """
+  def verify_subscription_token(token) do
+    # Get the secret key to verify the token with
+    secret = get_secret_key_base()
+    # Verify the token
+    Plug.Crypto.verify(secret, "confirm subscription", token, max_age: @max_token_age)
   end
 
   defp create_new_subscription(attrs) do

@@ -41,18 +41,20 @@ defmodule MicroserviceTest do
     test "create_subscription/1 sends confirmation email" do
       attrs = %{ name: "Test", email: "test@test.com" }
 
-      assert {:ok, %Subscription{ email: email } = _sub} = Newsletter.create_subscription(attrs)
+      assert {:ok, %Subscription{ id: id, email: email } = _sub} = Newsletter.create_subscription(attrs)
       
-      assert_delivered_email_matches(%{to: [{_, "test@test.com"}], text_body: text_body})
+      assert_delivered_email_matches(%{to: [{_, ^email}], text_body: text_body})
       assert %{ "token" => token } = Regex.named_captures(@link_regex, text_body)
+
+      assert {:ok, ^id } = Newsletter.verify_subscription_token(token)
     end
 
-    test "can create and confirm subscription" do
+    test "confirm_subscription/1 can confirm subscriptions" do
       attrs = %{ name: "Test", email: "test@test.com" }
 
       assert {:ok, %Subscription{ email: email } = _sub} = Newsletter.create_subscription(attrs)
       
-      assert_delivered_email_matches(%{to: [{_, "test@test.com"}], text_body: text_body})
+      assert_delivered_email_matches(%{to: [{_, ^email}], text_body: text_body})
       assert %{ "token" => token } = Regex.named_captures(@link_regex, text_body)
 
       assert {:ok, _sub} = Newsletter.confirm_subscription(token)
