@@ -41,11 +41,11 @@ defmodule Microservice.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "ecto.setup"],
+      run: ["run --no-halt"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "ecto.setup": ["ecto.create", "ecto.migrate" ],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
     ]
   end
-
 
 end

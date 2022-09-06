@@ -1,12 +1,12 @@
-defmodule MicroserviceWeb.Controller.Subscribers do
+defmodule MicroserviceWeb.Controller.Subscriptions do
   alias Microservice.{Newsletter, }
   alias MicroserviceWeb.{Renderer, Errors}
 
   import Plug.Conn
 
   def index(conn, _params) do
-    people = Newsletter.get_confirmed_subscribers()
-    conn |> Renderer.render_json(people)
+    subscriptions = Newsletter.get_confirmed_subscriptions()
+    conn |> Renderer.render_json(subscriptions)
   end
 
   def create(conn, params) do

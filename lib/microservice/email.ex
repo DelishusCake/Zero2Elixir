@@ -6,7 +6,7 @@ defmodule Microservice.Email do
   @from "noreply@test.com"
 
   def subscription_confirm(to, name, token) do
-    link = "http://localhost:8000/subscribers/confirm/" <> token 
+    link = "http://localhost:8000/subscriptions/confirm/" <> token 
     new_email(
       to: to,
       from: @from,

@@ -2,14 +2,20 @@ defmodule Microservice.Newsletter.Subscription do
   use Ecto.Schema
   import Ecto.Changeset
 
+  # Allow JSON encoding of the name and email fields
   @derive {Jason.Encoder, only: [:name, :email]}
+  # Describe the Ecto schema
   schema "subscriptions" do
     field :name, :string
     field :email, :string
+    # Will be null until confirmed
     field :confirmed_at, :utc_datetime
     timestamps()
   end
 
+  @doc """
+  Creation changeset, validates names and emails
+  """ 
   def changeset(subscription, attrs \\ %{}) do
     subscription 
     |> cast(attrs, [:name, :email])
@@ -18,6 +24,9 @@ defmodule Microservice.Newsletter.Subscription do
     |> validate_email()
   end
 
+  @doc """
+  Confirmation changeset, validates confirmed_at
+  """
   def changeset_confirm(subscription, attrs) do 
     subscription
     |> cast(attrs, [:confirmed_at])

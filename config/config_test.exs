@@ -10,4 +10,4 @@ config :microservice, Microservice.Repo,
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
 config :microservice, Microservice.Mailer,
-  adapter: Bamboo.LocalAdapter
+  adapter: Bamboo.TestAdapter

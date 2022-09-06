@@ -1,4 +1,3 @@
 Thanks for signing up for our newsletter!
 
-To confirm your email, visit this link in your browser:
-<%= link %>
+To confirm your email, visit this link in your browser: <%= link %>

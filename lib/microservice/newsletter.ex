@@ -6,11 +6,11 @@ defmodule Microservice.Newsletter do
 
   @max_token_age (60*10) # 10 minutes
 
-  def get_subscribers() do
+  def get_subscriptions() do
     Subscription |> Repo.all()
   end
 
-  def get_confirmed_subscribers() do
+  def get_confirmed_subscriptions() do
     query = from sub in Subscription,
       where: not is_nil(sub.confirmed_at) 
     query |> Repo.all()

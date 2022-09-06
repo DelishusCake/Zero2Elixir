@@ -18,14 +18,14 @@ defmodule MicroserviceWeb.Router do
 
   get "/", do: conn |> Renderer.render_html("index.html")
 
-  get "/subscribers" do
-    Controller.Subscribers.index(conn, conn.params)
+  get "/subscriptions" do
+    Controller.Subscriptions.index(conn, conn.params)
   end
-  post "/subscribers" do
-    Controller.Subscribers.create(conn, conn.params)
+  post "/subscriptions" do
+    Controller.Subscriptions.create(conn, conn.params)
   end
-  get "/subscribers/confirm/:token" do
-    Controller.Subscribers.confirm(conn, conn.params)
+  get "/subscriptions/confirm/:token" do
+    Controller.Subscriptions.confirm(conn, conn.params)
   end
 
   if Mix.env == :dev do
