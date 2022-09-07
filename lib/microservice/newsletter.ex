@@ -1,5 +1,5 @@
 defmodule Microservice.Newsletter do
-  alias Microservice.{Repo, Email, Mailer}
+  alias Microservice.{Repo, Email, Mailer, Token}
   alias Microservice.Newsletter.Subscription
 
   import Ecto.Query
@@ -27,18 +27,12 @@ defmodule Microservice.Newsletter do
   on how to confirm their subscription
   """
   def create_subscription(attrs \\ %{}) do
-    Repo.transaction(fn ->
-      # Insert the new subscriber
-      case create_new_subscription(attrs) do
-        {:ok, subscription} -> 
-          # Send the confirmation email
-          case send_confirm_email(subscription) do
-            {:ok, _} -> subscription
-            {:error, _email} -> Repo.rollback(:failed_to_send)
-          end
-        {:error, changeset} -> Repo.rollback(changeset)
-      end
-    end)
+    # Insert the new subscriber and send the confirmation email
+    with  {:ok, subscription} <- new_subscription(attrs) |> Repo.insert(),
+          {:ok, _email} = confirmation_email(subscription) |> Mailer.deliver_later()
+    do
+      {:ok, subscription}
+    end
   end
 
   @doc """
@@ -46,7 +40,7 @@ defmodule Microservice.Newsletter do
   """
   def confirm_subscription(token) do
     # Verify the token
-    with {:ok, id} <- verify_subscription_token(token) 
+    with {:ok, id} <- Token.verify("confirm subscription", token, max_age: @max_token_age)
     do
       # Get the subscription to confirm
       subscription = Repo.get!(Subscription, id)
@@ -57,38 +51,17 @@ defmodule Microservice.Newsletter do
       subscription
       |> Subscription.changeset_confirm(%{ confirmed_at: confirmed_at })
       |> Repo.update()
-    else
-      err -> err
     end
   end
 
-  @doc """
-  Check that a confirmation token is valid
-  """
-  def verify_subscription_token(token) do
-    # Get the secret key to verify the token with
-    secret = get_secret_key_base()
-    # Verify the token
-    Plug.Crypto.verify(secret, "confirm subscription", token, max_age: @max_token_age)
-  end
+  defp new_subscription(attrs), do: %Subscription{} |> Subscription.changeset(attrs)
 
-  defp create_new_subscription(attrs) do
-    %Subscription{} 
-    |> Subscription.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  defp send_confirm_email(%Subscription{ id: id } = subscription) do
-    # Get the secret key to sign the token with
-    secret = get_secret_key_base()
+  defp confirmation_email(%Subscription{ id: id } = subscription) do
     # Sign a new confirmation token that expires in 10 minutes
-    token = Plug.Crypto.sign(secret, "confirm subscription", id, max_age: @max_token_age)
+    token = Token.sign("confirm subscription", id, max_age: @max_token_age)
     # Render and send the email
-    Email.subscription_confirm(subscription.email, subscription.name, token) 
-    |> Mailer.deliver_later()
+    Email.subscription_confirm(subscription.email, subscription.name, token)
   end
-
-  defp get_secret_key_base(), do: Application.get_env(:microservice, :secret_key_base, 8080) || raise "Secret key base not defined"
 
   defp get_now(), do: DateTime.utc_now() |> DateTime.truncate(:second)
 end

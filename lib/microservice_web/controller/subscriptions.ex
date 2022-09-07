@@ -16,11 +16,6 @@ defmodule MicroserviceWeb.Controller.Subscriptions do
         conn 
         |> put_status(:created)
         |> Renderer.render_json(subscription)
-      # Email failed to send
-      {:error, :failed_to_send} ->
-        conn 
-        |> put_status(:internal_server_error)
-        |> Renderer.render_json(%{error: "Failed to send email"})
       # Failed to create subscriber
       {:error, changeset} ->
         # Render the error json

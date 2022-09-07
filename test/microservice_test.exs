@@ -27,7 +27,7 @@ defmodule MicroserviceTest do
       assert subscription.name == "Test"
       assert subscription.email == "test@test.com"
 
-      assert {:error, %Ecto.Changeset{ errors: errors } = _changeset} = Newsletter.create_subscription(attrs)
+      {:error, %Ecto.Changeset{ errors: errors } = _changeset} = Newsletter.create_subscription(attrs)
       assert errors[:email] 
     end
 
@@ -45,8 +45,6 @@ defmodule MicroserviceTest do
       
       assert_delivered_email_matches(%{to: [{_, ^email}], text_body: text_body})
       assert %{ "token" => token } = Regex.named_captures(@link_regex, text_body)
-
-      assert {:ok, ^id } = Newsletter.verify_subscription_token(token)
     end
 
     test "confirm_subscription/1 can confirm subscriptions" do
