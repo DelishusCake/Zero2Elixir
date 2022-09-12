@@ -18,11 +18,16 @@ defmodule MicroserviceWeb.Router do
   plug :match
   plug :dispatch
 
+  get "/health_check", do: conn |> send_resp(:ok, "Up!")
+
   get "/", do: conn |> Renderer.render_html("index.html")
 
   get "/subscriptions" do
     subscriptions = Newsletter.get_confirmed_subscriptions()
-    conn |> Renderer.render_json(subscriptions)
+    conn |> Renderer.render_json(%{ 
+      count: length(subscriptions),
+      subscriptions: subscriptions 
+    })
   end
   
   post "/subscriptions" do
@@ -31,7 +36,7 @@ defmodule MicroserviceWeb.Router do
       {:ok, subscription} -> 
         conn 
         |> put_status(:created)
-        |> Renderer.render_json(subscription)
+        |> Renderer.render_json(%{ subscription: subscription })
       # Failed to create subscriber
       {:error, changeset} ->
         # Render the error json
@@ -44,9 +49,9 @@ defmodule MicroserviceWeb.Router do
 
   get "/subscriptions/confirm/:token" do
     case Newsletter.confirm_subscription(token) do
-      {:ok, subscription} -> conn |> Renderer.render_json(subscription)
-      {:error, :invalid} -> conn |> Renderer.render_json(%{ error: "Invalid confirmation token" })
-      {:error, :expired} -> conn |> Renderer.render_json(%{ error: "Confirmation token has expired" })
+      {:ok, subscription} -> conn |> Renderer.render_json(%{ subscription: subscription })
+      {:error, :invalid} -> conn |> put_status(:conflict) |> Renderer.render_json(%{ error: "Invalid confirmation token" })
+      {:error, :expired} -> conn |> put_status(:conflict) |> Renderer.render_json(%{ error: "Confirmation token has expired" })
     end
   end
 
