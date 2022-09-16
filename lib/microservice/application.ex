@@ -13,6 +13,7 @@ defmodule Microservice.Application do
       # Starts a worker by calling: Microservice.Worker.start_link(arg)
       # {Microservice.Worker, arg}
       Microservice.Repo,
+      Microservice.Newsletter.SubscriptionCache,
       {Plug.Cowboy, scheme: :http, plug: MicroserviceWeb.Router, options: [port: get_port()]}
     ]
 

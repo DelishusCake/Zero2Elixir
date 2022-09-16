@@ -29,20 +29,14 @@ defmodule LruCache do
   Returns a new cache
   """
   def put(cache, key, value) do
-    # If the cache already contains the key
-    if contains?(cache, key) do
-      # Move the key to the front of the queue
-      move_to_front(cache, key)
-    else
-      # Maybe evict the last element inserted if the cache is full
-      cache = maybe_evict(cache)
-      # Put the new key at the front of the queue
-      new_queue = [key | cache.queue]
-      # Put the new value into the lookup map
-      new_values = Map.put(cache.values, key, value)
-      # Return the new cache
-      %{cache | queue: new_queue, values: new_values}
-    end
+    # Maybe evict the last element inserted if the cache is full
+    cache = maybe_evict(cache)
+    # Move the key to the front of the queue
+    cache = move_to_front(cache, key)
+    # Put the new value into the lookup map
+    new_values = Map.put(cache.values, key, value)
+    # Return the new cache
+    %{cache | values: new_values}
   end
 
   @doc """

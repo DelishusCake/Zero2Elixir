@@ -1,6 +1,6 @@
 defmodule Microservice.Newsletter do
   alias Microservice.{Repo, Email, Mailer, Token}
-  alias Microservice.Newsletter.Subscription
+  alias Microservice.Newsletter.{Subscription, SubscriptionCache}
 
   import Ecto.Query
 
@@ -9,8 +9,15 @@ defmodule Microservice.Newsletter do
   @doc """
   Get all subscriptions, both confirmed and unconfirmed
   """
-  def get_subscriptions() do
-    Subscription |> Repo.all()
+  def get_subscriptions(), do: Subscription |> Repo.all()
+
+  @doc """
+  Get a list of confirmed subscriptions, both confirmed and unconfirmed, utilizing the cache
+  """
+  def get_subscriptions_cached() do
+    SubscriptionCache.get_or_cache(:all, fn ->
+      get_subscriptions()
+    end)
   end
 
   @doc """
@@ -23,6 +30,15 @@ defmodule Microservice.Newsletter do
   end
 
   @doc """
+  Get a list of confirmed subscriptions, utilizing the cache
+  """
+  def get_confirmed_subscriptions_cached() do
+    SubscriptionCache.get_or_cache(:all_filtered, fn ->
+      get_confirmed_subscriptions()
+    end)
+  end
+
+  @doc """
   Create a new subscription and send them an email with instructions 
   on how to confirm their subscription
   """
@@ -31,6 +47,9 @@ defmodule Microservice.Newsletter do
     with  {:ok, subscription} <- new_subscription(attrs) |> Repo.insert(),
           {:ok, _email} = confirmation_email(subscription) |> Mailer.deliver_later()
     do
+      # Invalidate the subscription cache
+      SubscriptionCache.clear()
+      # Return the subscription
       {:ok, subscription}
     end
   end
@@ -42,6 +61,8 @@ defmodule Microservice.Newsletter do
     # Verify the token
     with {:ok, id} <- Token.verify("confirm subscription", token, max_age: @max_token_age)
     do
+      # Invalidate the subscription cache
+      SubscriptionCache.clear()
       # Get the subscription to confirm
       subscription = Repo.get!(Subscription, id)
       # Get the confirmed at value for the subscription, or the current UTC timestamp

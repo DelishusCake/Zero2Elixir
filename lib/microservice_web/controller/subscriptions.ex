@@ -5,7 +5,7 @@ defmodule MicroserviceWeb.Controllers.Subscriptions do
   alias MicroserviceWeb.{Errors, Renderer}
 
   def index(conn) do
-    subscriptions = Newsletter.get_confirmed_subscriptions()
+    subscriptions = Newsletter.get_confirmed_subscriptions_cached()
     conn |> Renderer.render_json(%{ 
       count: length(subscriptions),
       subscriptions: subscriptions 
